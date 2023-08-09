@@ -1,9 +1,9 @@
 # Official Dockware Image
-# Tag: 6.4.17.2-custom
+# Tag: 6.5.0.0
 # Copyright 2022 dasistweb GmbH
 #
 FROM ubuntu:22.04
-LABEL title="Dockware dev:6.4.17.2-custom" \
+LABEL title="Dockware dev:6.5.0.0" \
       version="1.6.0" \
       maintainer="dasistweb GmbH"
 
@@ -23,7 +23,7 @@ ENV PHP_VERSION 8.1
 ENV APACHE_DOCROOT /var/www/html/public
 ENV SW_TASKS_ENABLED 0
 ENV COMPOSER_VERSION not-set
-ENV NODE_VERSION 12
+ENV NODE_VERSION 18
 ENV SHOP_DOMAIN localhost
 RUN echo "export TZ=${TZ}" >> /etc/profile \
  && echo "export PHP_VERSION=${PHP_VERSION}" >> /etc/profile \
@@ -36,7 +36,7 @@ RUN echo "export TZ=${TZ}" >> /etc/profile \
 ENV SSH_USER not-set
 ENV SSH_PWD not-set
 ENV XDEBUG_REMOTE_HOST "host.docker.internal"
-ENV XDEBUG_CONFIG "idekey=phpstorm"
+ENV XDEBUG_CONFIG "idekey=PHPSTORM"
 ENV PHP_IDE_CONFIG "serverName=localhost"
 ENV XDEBUG_ENABLED 1
 ENV FILEBEAT_ENABLED 0
@@ -129,8 +129,8 @@ RUN echo "root:root" | chpasswd \
 #       - string pwd
 #       - bool sudo
 ## ***********************************************************************
-RUN usermod -u 1000 www-data #todo added
-RUN groupmod -g 1000 www-data #todo added
+RUN usermod -u 1000 www-data
+RUN groupmod -g 1000 www-data
 RUN adduser --disabled-password --uid 5577 --gecos "" --ingroup www-data dockware \
     && usermod -m -d /var/www dockware | true \
     && echo "dockware:dockware" | chpasswd \
@@ -278,13 +278,13 @@ RUN mkdir -p /var/www/html \
 
 # make sure the configured log folder exists and is writeable
 RUN chmod -R 0777 /var/www \
-    && chgrp -R www-data /var/log/apache2 \
+    && chgrp -R 1000 /var/log/apache2 \
     && mkdir -p /var/log/mysql \
-    && chgrp -R www-data /var/log/mysql\
+    && chgrp -R 1000 /var/log/mysql\
     && mkdir /var/log/php -p  \
     && touch /var/log/php/cli_errors.log  \
     && touch /var/log/php/fpm_errors.log  \
-    && chown -R www-data:www-data /var/log/php  \
+    && chown -R 1000:1000 /var/log/php  \
     && chmod 0755 /var/log/php
 
 ## ***********************************************************************
@@ -299,11 +299,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 RUN apt-get update \
+
     && apt-get install -y rsync \
     && apt-get install -y sshpass \
     && apt-get install -y jpegoptim \
     && apt-get install -y screen \
     && apt-get install -y mysql-client \
+
     && apt-get install -y git
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/tmp --version=2.2.9 --quiet \
@@ -366,14 +368,17 @@ COPY ./config/php/xdebug-3.ini /etc/php/8.1/fpm/conf.d/20-xdebug.ini
 COPY ./config/php/xdebug-3.ini /etc/php/8.1/cli/conf.d/20-xdebug.ini
 
 RUN cd /var/www \
+
 && sed -i 's/__PHP__FOLDER__ID/20220829/g' /etc/php/8.2/fpm/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP_VERSION__/8.2/g' /etc/php/8.2/fpm/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP__FOLDER__ID/20220829/g' /etc/php/8.2/cli/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP_VERSION__/8.2/g' /etc/php/8.2/cli/conf.d/20-xdebug.ini \
+
 && sed -i 's/__PHP__FOLDER__ID/20210902/g' /etc/php/8.1/fpm/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP_VERSION__/8.1/g' /etc/php/8.1/fpm/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP__FOLDER__ID/20210902/g' /etc/php/8.1/cli/conf.d/20-xdebug.ini \
     && sed -i 's/__PHP_VERSION__/8.1/g' /etc/php/8.1/cli/conf.d/20-xdebug.ini \
+
  && cd /var/www
 
 ## ***********************************************************************
@@ -404,6 +409,7 @@ RUN chmod 0444 /etc/mysql/my.cnf \
 #creat ethe user for % and also localhost as otherwise you qould have to connect to 127.0.0.1 and not localhost as mysql treats this different
 && sudo mysql --user=root --password=root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';FLUSH PRIVILEGES;use mysql;select user from user;" \
 && sudo mysql --user=root --password=root -e "CREATE USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;use mysql;select user from user;" \
+
 && service mysql restart
 
 ## ***********************************************************************
@@ -447,7 +453,7 @@ COPY /config/pimpmylog/config.user.json /var/www/pimpmylog/config.user.json
 # its used from here: https://github.com/potsky/PimpMyLog/pull/149/files
 COPY /config/pimpmylog/global.inc.php /var/www/pimpmylog/inc/global.inc.php
 
-RUN chown -R www-data:www-data /var/www/pimpmylog/
+RUN chown -R 1000:1000 /var/www/pimpmylog/
 
 RUN apt-get update \
     && wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
@@ -465,18 +471,14 @@ RUN ls -la \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  \
     # -----------------------------------------------------------------------------------------
-    && nvm install 16 \
-    && nvm install 14 \
-    && nvm install 12 \
+    && nvm install 18 \
     # -----------------------------------------------------------------------------------------
     # we have to install yarn in additional node versions
     # otherwise it won't be found after a nvm switch
-    && nvm use 16 && npm install -g yarn \
-    && nvm use 14 && npm install -g yarn \
-    && nvm use 12 && npm install -g yarn \
+    && nvm use 18 && npm install -g yarn \
     # -----------------------------------------------------------------------------------------
-    && nvm use 12 \
-    && nvm alias default 12  \
+    && nvm use 18 \
+    && nvm alias default 18  \
     # -----------------------------------------------------------------------------------------
     && echo ""
 
@@ -489,15 +491,18 @@ RUN echo "" \
     && export NVM_DIR="/var/www/.nvm" \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  \
-    && nvm use 12 \
+    && nvm use 18 \
     # -----------------------------------------------------------
     && mkdir /var/www/.npm \
     && npm config set cache /var/www/.npm \
     && chown 1000:1000 /var/www/.npm \
+
+    # navigate to another folder outside shopware to avoid this error: npm ERR! Tracker "idealTree" already exists
     && cd /var/www && npm install -g grunt-cli \
     && cd /var/www && npm install grunt --save-dev \
+
     && npm install -g --no-install-recommends yarn \
-    && chown -R www-data:www-data /var/www/.composer \
+    && chown -R 1000:1000 /var/www/.composer \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 COPY ./assets/tideways/tideways-daemon /etc/init.d/tideways-daemon
@@ -580,29 +585,27 @@ COPY ./assets/scripts/cron /var/www/scripts/cron
 
 COPY ./assets/shopware6/files /var/www/scripts/shopware6
 
-RUN chown www-data:www-data -R /var/www/scripts
+RUN chown 1000:1000 -R /var/www/scripts
 #make sure for the whole installation xdebug is off for performance
 RUN sh /var/www/scripts/bin/xdebug_disable.sh
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod 755 /*.sh
 
-## ***********************************************************************
-##  INSTALL SHOPWARE
-## ***********************************************************************
-RUN rm -rf /var/www/html/* \
-    && wget --no-check-certificate https://releases.shopware.com/sw6/install_v6.4.17.2_4d2c85fb448571fa4f30edce635f33a67dda1d76.zip -qq -O /var/www/shopware.zip \
-    && unzip -q /var/www/shopware.zip -d /var/www/html \
-    && rm -rf /var/www/shopware.zip
+COPY ./assets/shopware6/DockwareSamplePlugin /var/www/html/custom/plugins/DockwareSamplePlugin
 
-RUN echo "APP_ENV=dev" >> /var/www/html/.env && \
-    echo "APP_SECRET=1" >> /var/www/html/.env && \
-    echo "INSTANCE_ID=1" >> /var/www/html/.env && \
-    echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/shopware" >> /var/www/html/.env && \
+RUN cd /var/www && \
+    composer create-project shopware/production:6.5.0.0 --no-interaction && \
+    cp -a /var/www/production/. /var/www/html && \
+    rm -rf /var/www/production && \
+    sed -i "/APP_ENV=/g" /var/www/html/.env && \
+    sed -i "/APP_URL=/g" /var/www/html/.env && \
+    sed -i "/DATABASE_URL=/g" /var/www/html/.env && \
+    sed -i "/MAILER_URL=/g" /var/www/html/.env && \
+    echo "APP_ENV=dev" >> /var/www/html/.env && \
     echo "APP_URL=http://localhost" >> /var/www/html/.env && \
-    echo "MAILER_URL=smtp://localhost:1025" >> /var/www/html/.env && \
-    echo "COMPOSER_HOME=/var/www/html/var/cache/composer" >> /var/www/html/.env && \
-    echo "SHOPWARE_ES_ENABLED=0" >> /var/www/html/.env
+    echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/shopware" >> /var/www/html/.env && \
+    echo "MAILER_URL=smtp://127.0.0.1:1025" >> /var/www/html/.env
 
 RUN sudo service mysql start && \
     # switch to default PHP before installing
@@ -614,9 +617,10 @@ RUN sudo service mysql start && \
     cd /var/www/html && composer require fakerphp/faker && \
     cd /var/www/html && composer require mbezhanov/faker-provider-collection && \
     cd /var/www/html && composer require maltyxx/images-generator && \
-    cd /var/www/html && APP_ENV=prod php bin/console framework:demodata && \
     # -------------------------------------------------------------------------------------------
-    #cd /var/www/html && APP_ENV=prod php bin/console plugin:refresh && \
+    cd /var/www/html && APP_ENV=prod php bin/console store:download -p SwagPlatformDemoData && \
+    cd /var/www/html && APP_ENV=prod php bin/console plugin:refresh && \
+    cd /var/www/html && APP_ENV=prod php bin/console plugin:install --activate SwagPlatformDemoData && \
     # -------------------------------------------------------------------------------------------
     cd /var/www/html && php bin/console plugin:install DockwareSamplePlugin && \
     cd /var/www/html && php bin/console plugin:activate DockwareSamplePlugin && \

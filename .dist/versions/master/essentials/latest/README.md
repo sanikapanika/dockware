@@ -53,7 +53,7 @@ This image comes with different features that can be set with the ENV variables.
 
 | Feature  |  Default | Description |
 |---|---| --- |
-| PHP_VERSION  | 8.2 | Switch to any of the installed PHP versions: 8.2, 8.1, 8.0, 7.4, 7.3, 7.2, 7.1, 7.0, 5.6,  |
+| PHP_VERSION  | 8.2 | Switch to any of the installed PHP versions: 8.2, 8.1, 8.0, 7.4, 7.3, 7.2, 7.1,    |
 | APACHE_DOCROOT  | /var/www/html/public | Sets the default DocRoot of Apache |
 | SSH_USER	| not-set | Name of the optional new SSH user that replaces the existing one from dockware |
 | SSH_PWD |	not-set	| Password of the optional new SSH user that replaces the existing one from dockware |
@@ -102,19 +102,21 @@ This is a full template with everything that can be done using dockware.
 Please note that not all of these settings might be necessary.
 
 ```ruby
-shopware:
-    image: dockware/essentials:latest
-    container_name: shopware
-    ports:
-        - "80:80"
-        - "22:22"
-        # Admin Watcher Port
-        - "8888:8888"
-        # Storefront Watcher Port
-        - "9999:9999"
-    environment:
-        - PHP_VERSION=8.2
-        - XDEBUG_ENABLED=1
+version: "3"
+services:
+    shopware:
+        image: dockware/essentials:latest
+        container_name: shopware
+        ports:
+          - "80:80"
+          - "22:22"
+          # Admin Watcher Port
+          - "8888:8888"
+          # Storefront Watcher Port
+          - "9999:9999"
+        environment:
+          - PHP_VERSION=8.2
+          - XDEBUG_ENABLED=1
 ```
 
 ## Configuration Options

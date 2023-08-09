@@ -32,6 +32,8 @@ class SVRUnitBuilder
         $node = '12';
         $composer = '2';
 
+        $ubuntuVersion = '22';
+
         if (version_compare($tag, '6.5') >= 0) {
             # SHOPWARE 6
             $php81 = true;
@@ -78,6 +80,7 @@ class SVRUnitBuilder
                     $php71 = false;
                     $php7 = false;
                     $php56 = false;
+
                 } else {
                     # SHOPWARE < 5.7
                     $composer = '1';
@@ -93,6 +96,8 @@ class SVRUnitBuilder
                     $php7 = true;
                     $php56 = true;
                     $sodium = false;
+
+                    $ubuntuVersion = '18';
                 }
             }
         }
@@ -120,6 +125,7 @@ class SVRUnitBuilder
             <directory>./../../tests/packages/composer/v' . $composer . '</directory>';
 
         $sharedBaseSW = './../../tests/shared/base-6.0';
+        $shopwareCLI = '';
 
         if (str_contains($tag, '6.5')) {
             $sharedBaseSW = './../../tests/shared/base-6.5';
@@ -129,13 +135,21 @@ class SVRUnitBuilder
             $devPart = '';
         }
 
+        if ($isDev && str_starts_with($tag, '6.')) {
+            $shopwareCLI = '
+            <directory>./../../tests/packages/shopware-cli/</directory>';
+        }
+
+        $ubuntu = './../../tests/packages/ubuntu/' . $ubuntuVersion;
+
         $xml .= '
         <testsuite name="' . $imageFull . ', Core Checks" group="core" dockerImage="' . $imageFull . '">
             <directory>./../../tests/shared/base</directory>
-            <directory>' . $sharedBaseSW . '</directory>' . $devPart . '
-            <directory>./../../tests/packages/php/php' . $defaultPHP . '</directory>
-        </testsuite>
-         ';
+            <directory>"' . $ubuntu . '"</directory>
+            <directory > ' . $sharedBaseSW . '</directory> ' . $devPart . $shopwareCLI . '
+            <directory >./../../tests/packages/php/php' . $defaultPHP . ' </directory>
+        </testsuite >
+    ';
 
         # -------------------------------------------------------------------------------------------------------------------------------
 

@@ -38,7 +38,7 @@ ENV SSH_PWD not-set
 ENV XDEBUG_REMOTE_HOST "host.docker.internal"
 ENV XDEBUG_CONFIG "idekey=PHPSTORM"
 ENV PHP_IDE_CONFIG "serverName=localhost"
-ENV XDEBUG_ENABLED 0
+ENV XDEBUG_ENABLED 1
 ENV FILEBEAT_ENABLED 0
 ENV TIDEWAYS_KEY not-set
 ENV TIDEWAYS_ENV production
@@ -129,20 +129,22 @@ RUN echo "root:root" | chpasswd \
 #       - string pwd
 #       - bool sudo
 ## ***********************************************************************
+RUN usermod -u 1000 www-data #todo added
+RUN groupmod -g 1000 www-data #todo added
 RUN adduser --disabled-password --uid 5577 --gecos "" --ingroup www-data dockware \
     && usermod -m -d /var/www dockware | true \
     && echo "dockware:dockware" | chpasswd \
         && usermod -a -G sudo dockware \
     # allow sudo without pwd and dont require tty (for entrypoint commands)
     && echo "Defaults:dockware !requiretty" >> /etc/sudoers \
-        && sed -i 's/dockware:x:5577:33:/dockware:x:33:33:/g' /etc/passwd
+        && sed -i 's/dockware:x:5577:1000:/dockware:x:1000:1000:/g' /etc/passwd
 RUN echo 'AllowUsers dockware' >> /etc/ssh/sshd_config
 
 ENV BASH_ENV /var/www/.bashrc
 
 RUN echo "source /var/www/.nvm/nvm.sh" >> /var/www/.bashrc \
     # -------------------------------------------------
-    && chown 33:33 /var/www/.bashrc \
+    && chown 1000:1000 /var/www/.bashrc \
     # -------------------------------------------------
     && echo "export BASH_ENV=${BASH_ENV}" >> /etc/profile
 
@@ -491,7 +493,7 @@ RUN echo "" \
     # -----------------------------------------------------------
     && mkdir /var/www/.npm \
     && npm config set cache /var/www/.npm \
-    && chown 33:33 /var/www/.npm \
+    && chown 1000:1000 /var/www/.npm \
 
     # navigate to another folder outside shopware to avoid this error: npm ERR! Tracker "idealTree" already exists
     && cd /var/www && npm install -g grunt-cli \
@@ -630,7 +632,7 @@ ENV SSH_PWD not-set
 ENV XDEBUG_REMOTE_HOST "host.docker.internal"
 ENV XDEBUG_CONFIG "idekey=PHPSTORM"
 ENV PHP_IDE_CONFIG "serverName=localhost"
-ENV XDEBUG_ENABLED 0
+ENV XDEBUG_ENABLED 1
 ENV FILEBEAT_ENABLED 0
 ENV TIDEWAYS_KEY not-set
 ENV TIDEWAYS_ENV production
@@ -721,20 +723,22 @@ RUN echo "root:root" | chpasswd \
 #       - string pwd
 #       - bool sudo
 ## ***********************************************************************
+RUN usermod -u 1000 www-data #todo added
+RUN groupmod -g 1000 www-data #todo added
 RUN adduser --disabled-password --uid 5577 --gecos "" --ingroup www-data dockware \
     && usermod -m -d /var/www dockware | true \
     && echo "dockware:dockware" | chpasswd \
         && usermod -a -G sudo dockware \
     # allow sudo without pwd and dont require tty (for entrypoint commands)
     && echo "Defaults:dockware !requiretty" >> /etc/sudoers \
-        && sed -i 's/dockware:x:5577:33:/dockware:x:33:33:/g' /etc/passwd
+        && sed -i 's/dockware:x:5577:1000:/dockware:x:1000:1000:/g' /etc/passwd
 RUN echo 'AllowUsers dockware' >> /etc/ssh/sshd_config
 
 ENV BASH_ENV /var/www/.bashrc
 
 RUN echo "source /var/www/.nvm/nvm.sh" >> /var/www/.bashrc \
     # -------------------------------------------------
-    && chown 33:33 /var/www/.bashrc \
+    && chown 1000:1000 /var/www/.bashrc \
     # -------------------------------------------------
     && echo "export BASH_ENV=${BASH_ENV}" >> /etc/profile
 
@@ -1083,7 +1087,7 @@ RUN echo "" \
     # -----------------------------------------------------------
     && mkdir /var/www/.npm \
     && npm config set cache /var/www/.npm \
-    && chown 33:33 /var/www/.npm \
+    && chown 1000:1000 /var/www/.npm \
 
     # navigate to another folder outside shopware to avoid this error: npm ERR! Tracker "idealTree" already exists
     && cd /var/www && npm install -g grunt-cli \
@@ -1237,12 +1241,12 @@ RUN sudo service mysql start && \
 
 RUN echo "" && \
     curl -1sLf 'https://dl.cloudsmith.io/public/friendsofshopware/stable/setup.deb.sh' | sudo -E bash && sudo apt install shopware-cli && \
-    chown 33:33 -R /var/www/html && \
-    mkdir -p /var/www/.npm && chown 33:33 /var/www/.npm -R && \
+    chown 1000:1000 -R /var/www/html && \
+    mkdir -p /var/www/.npm && chown 1000:1000 /var/www/.npm -R && \
     # this is necessary so that our user can
     # change the default nvm node version
     # otherwise the persisted node version switch would not work!
-    mkdir -p /var/www/.nvm && chown 33:33 /var/www/.nvm -R && \
+    mkdir -p /var/www/.nvm && chown 1000:1000 /var/www/.nvm -R && \
     echo ""
 
 ## ***********************************************************************
@@ -1264,12 +1268,12 @@ ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 
 RUN echo "" && \
     curl -1sLf 'https://dl.cloudsmith.io/public/friendsofshopware/stable/setup.deb.sh' | sudo -E bash && sudo apt install shopware-cli && \
-    chown 33:33 -R /var/www/html && \
-    mkdir -p /var/www/.npm && chown 33:33 /var/www/.npm -R && \
+    chown 1000:1000 -R /var/www/html && \
+    mkdir -p /var/www/.npm && chown 1000:1000 /var/www/.npm -R && \
     # this is necessary so that our user can
     # change the default nvm node version
     # otherwise the persisted node version switch would not work!
-    mkdir -p /var/www/.nvm && chown 33:33 /var/www/.nvm -R && \
+    mkdir -p /var/www/.nvm && chown 1000:1000 /var/www/.nvm -R && \
     echo ""
 
 ## ***********************************************************************

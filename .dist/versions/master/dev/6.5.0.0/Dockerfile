@@ -38,7 +38,7 @@ ENV SSH_PWD not-set
 ENV XDEBUG_REMOTE_HOST "host.docker.internal"
 ENV XDEBUG_CONFIG "idekey=PHPSTORM"
 ENV PHP_IDE_CONFIG "serverName=localhost"
-ENV XDEBUG_ENABLED 0
+ENV XDEBUG_ENABLED 1
 ENV FILEBEAT_ENABLED 0
 ENV TIDEWAYS_KEY not-set
 ENV TIDEWAYS_ENV production
@@ -129,20 +129,22 @@ RUN echo "root:root" | chpasswd \
 #       - string pwd
 #       - bool sudo
 ## ***********************************************************************
+RUN usermod -u 1000 www-data #todo added
+RUN groupmod -g 1000 www-data #todo added
 RUN adduser --disabled-password --uid 5577 --gecos "" --ingroup www-data dockware \
     && usermod -m -d /var/www dockware | true \
     && echo "dockware:dockware" | chpasswd \
         && usermod -a -G sudo dockware \
     # allow sudo without pwd and dont require tty (for entrypoint commands)
     && echo "Defaults:dockware !requiretty" >> /etc/sudoers \
-        && sed -i 's/dockware:x:5577:33:/dockware:x:33:33:/g' /etc/passwd
+        && sed -i 's/dockware:x:5577:1000:/dockware:x:1000:1000:/g' /etc/passwd
 RUN echo 'AllowUsers dockware' >> /etc/ssh/sshd_config
 
 ENV BASH_ENV /var/www/.bashrc
 
 RUN echo "source /var/www/.nvm/nvm.sh" >> /var/www/.bashrc \
     # -------------------------------------------------
-    && chown 33:33 /var/www/.bashrc \
+    && chown 1000:1000 /var/www/.bashrc \
     # -------------------------------------------------
     && echo "export BASH_ENV=${BASH_ENV}" >> /etc/profile
 
@@ -268,23 +270,23 @@ RUN service php8.1-fpm stop > /dev/null 2>&1 && \
     sudo update-alternatives --set php /usr/bin/php8.1 > /dev/null 2>&1
 
 # make sure our php user has rights on the session
-RUN chown www-data:www-data -R /var/lib/php/sessions
+RUN chown 1000:1000 -R /var/lib/php/sessions
 
 # remove the standard apache index file
 RUN mkdir -p /var/www/html \
     && rm -rf /var/www/html/* \
-    && chown -R www-data:www-data /var/www/html \
+    && chown -R 1000:1000 /var/www/html \
     && sudo -u www-data sh -c 'mkdir -p /var/www/html/public'
 
 # make sure the configured log folder exists and is writeable
 RUN chmod -R 0777 /var/www \
-    && chgrp -R www-data /var/log/apache2 \
+    && chgrp -R 1000 /var/log/apache2 \
     && mkdir -p /var/log/mysql \
-    && chgrp -R www-data /var/log/mysql\
+    && chgrp -R 1000 /var/log/mysql\
     && mkdir /var/log/php -p  \
     && touch /var/log/php/cli_errors.log  \
     && touch /var/log/php/fpm_errors.log  \
-    && chown -R www-data:www-data /var/log/php  \
+    && chown -R 1000:1000 /var/log/php  \
     && chmod 0755 /var/log/php
 
 ## ***********************************************************************
@@ -449,7 +451,7 @@ COPY /config/pimpmylog/config.user.json /var/www/pimpmylog/config.user.json
 # its used from here: https://github.com/potsky/PimpMyLog/pull/149/files
 COPY /config/pimpmylog/global.inc.php /var/www/pimpmylog/inc/global.inc.php
 
-RUN chown -R www-data:www-data /var/www/pimpmylog/
+RUN chown -R 1000:1000 /var/www/pimpmylog/
 
 RUN apt-get update \
     && wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
@@ -491,14 +493,14 @@ RUN echo "" \
     # -----------------------------------------------------------
     && mkdir /var/www/.npm \
     && npm config set cache /var/www/.npm \
-    && chown 33:33 /var/www/.npm \
+    && chown 1000:1000 /var/www/.npm \
 
     # navigate to another folder outside shopware to avoid this error: npm ERR! Tracker "idealTree" already exists
     && cd /var/www && npm install -g grunt-cli \
     && cd /var/www && npm install grunt --save-dev \
 
     && npm install -g --no-install-recommends yarn \
-    && chown -R www-data:www-data /var/www/.composer \
+    && chown -R 1000:1000 /var/www/.composer \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 COPY ./assets/tideways/tideways-daemon /etc/init.d/tideways-daemon
@@ -585,7 +587,7 @@ COPY ./assets/shopware6/files /var/www/scripts/shopware6
 
 ADD entrypoint.sh /entrypoint.sh
 
-RUN chown www-data:www-data -R /var/www/scripts && \
+RUN chown 1000:1000 -R /var/www/scripts && \
     #make sure for the whole installation xdebug is off for performance
     sh /var/www/scripts/bin/xdebug_disable.sh && \
     chmod 755 /*.sh
@@ -630,7 +632,7 @@ ENV SSH_PWD not-set
 ENV XDEBUG_REMOTE_HOST "host.docker.internal"
 ENV XDEBUG_CONFIG "idekey=PHPSTORM"
 ENV PHP_IDE_CONFIG "serverName=localhost"
-ENV XDEBUG_ENABLED 0
+ENV XDEBUG_ENABLED 1
 ENV FILEBEAT_ENABLED 0
 ENV TIDEWAYS_KEY not-set
 ENV TIDEWAYS_ENV production
@@ -721,20 +723,22 @@ RUN echo "root:root" | chpasswd \
 #       - string pwd
 #       - bool sudo
 ## ***********************************************************************
+RUN usermod -u 1000 www-data #todo added
+RUN groupmod -g 1000 www-data #todo added
 RUN adduser --disabled-password --uid 5577 --gecos "" --ingroup www-data dockware \
     && usermod -m -d /var/www dockware | true \
     && echo "dockware:dockware" | chpasswd \
         && usermod -a -G sudo dockware \
     # allow sudo without pwd and dont require tty (for entrypoint commands)
     && echo "Defaults:dockware !requiretty" >> /etc/sudoers \
-        && sed -i 's/dockware:x:5577:33:/dockware:x:33:33:/g' /etc/passwd
+        && sed -i 's/dockware:x:5577:1000:/dockware:x:1000:1000:/g' /etc/passwd
 RUN echo 'AllowUsers dockware' >> /etc/ssh/sshd_config
 
 ENV BASH_ENV /var/www/.bashrc
 
 RUN echo "source /var/www/.nvm/nvm.sh" >> /var/www/.bashrc \
     # -------------------------------------------------
-    && chown 33:33 /var/www/.bashrc \
+    && chown 1000:1000 /var/www/.bashrc \
     # -------------------------------------------------
     && echo "export BASH_ENV=${BASH_ENV}" >> /etc/profile
 
@@ -860,23 +864,23 @@ RUN service php8.1-fpm stop > /dev/null 2>&1 && \
     sudo update-alternatives --set php /usr/bin/php8.1 > /dev/null 2>&1
 
 # make sure our php user has rights on the session
-RUN chown www-data:www-data -R /var/lib/php/sessions
+RUN chown 1000:1000 -R /var/lib/php/sessions
 
 # remove the standard apache index file
 RUN mkdir -p /var/www/html \
     && rm -rf /var/www/html/* \
-    && chown -R www-data:www-data /var/www/html \
+    && chown -R 1000:1000 /var/www/html \
     && sudo -u www-data sh -c 'mkdir -p /var/www/html/public'
 
 # make sure the configured log folder exists and is writeable
 RUN chmod -R 0777 /var/www \
-    && chgrp -R www-data /var/log/apache2 \
+    && chgrp -R 1000 /var/log/apache2 \
     && mkdir -p /var/log/mysql \
-    && chgrp -R www-data /var/log/mysql\
+    && chgrp -R 1000 /var/log/mysql\
     && mkdir /var/log/php -p  \
     && touch /var/log/php/cli_errors.log  \
     && touch /var/log/php/fpm_errors.log  \
-    && chown -R www-data:www-data /var/log/php  \
+    && chown -R 1000:1000 /var/log/php  \
     && chmod 0755 /var/log/php
 
 ## ***********************************************************************
@@ -1041,7 +1045,7 @@ COPY /config/pimpmylog/config.user.json /var/www/pimpmylog/config.user.json
 # its used from here: https://github.com/potsky/PimpMyLog/pull/149/files
 COPY /config/pimpmylog/global.inc.php /var/www/pimpmylog/inc/global.inc.php
 
-RUN chown -R www-data:www-data /var/www/pimpmylog/
+RUN chown -R 1000:1000 /var/www/pimpmylog/
 
 RUN apt-get update \
     && wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
@@ -1083,14 +1087,14 @@ RUN echo "" \
     # -----------------------------------------------------------
     && mkdir /var/www/.npm \
     && npm config set cache /var/www/.npm \
-    && chown 33:33 /var/www/.npm \
+    && chown 1000:1000 /var/www/.npm \
 
     # navigate to another folder outside shopware to avoid this error: npm ERR! Tracker "idealTree" already exists
     && cd /var/www && npm install -g grunt-cli \
     && cd /var/www && npm install grunt --save-dev \
 
     && npm install -g --no-install-recommends yarn \
-    && chown -R www-data:www-data /var/www/.composer \
+    && chown -R 1000:1000 /var/www/.composer \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 COPY ./assets/tideways/tideways-daemon /etc/init.d/tideways-daemon
@@ -1177,7 +1181,7 @@ COPY ./assets/shopware6/files /var/www/scripts/shopware6
 
 ADD entrypoint.sh /entrypoint.sh
 
-RUN chown www-data:www-data -R /var/www/scripts && \
+RUN chown 1000:1000 -R /var/www/scripts && \
     #make sure for the whole installation xdebug is off for performance
     sh /var/www/scripts/bin/xdebug_disable.sh && \
     chmod 755 /*.sh
@@ -1237,12 +1241,12 @@ RUN sudo service mysql start && \
 
 RUN echo "" && \
     curl -1sLf 'https://dl.cloudsmith.io/public/friendsofshopware/stable/setup.deb.sh' | sudo -E bash && sudo apt install shopware-cli && \
-    chown 33:33 -R /var/www/html && \
-    mkdir -p /var/www/.npm && chown 33:33 /var/www/.npm -R && \
+    chown 1000:1000 -R /var/www/html && \
+    mkdir -p /var/www/.npm && chown 1000:1000 /var/www/.npm -R && \
     # this is necessary so that our user can
     # change the default nvm node version
     # otherwise the persisted node version switch would not work!
-    mkdir -p /var/www/.nvm && chown 33:33 /var/www/.nvm -R && \
+    mkdir -p /var/www/.nvm && chown 1000:1000 /var/www/.nvm -R && \
     echo ""
 
 ## ***********************************************************************
@@ -1264,12 +1268,12 @@ ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 
 RUN echo "" && \
     curl -1sLf 'https://dl.cloudsmith.io/public/friendsofshopware/stable/setup.deb.sh' | sudo -E bash && sudo apt install shopware-cli && \
-    chown 33:33 -R /var/www/html && \
-    mkdir -p /var/www/.npm && chown 33:33 /var/www/.npm -R && \
+    chown 1000:1000 -R /var/www/html && \
+    mkdir -p /var/www/.npm && chown 1000:1000 /var/www/.npm -R && \
     # this is necessary so that our user can
     # change the default nvm node version
     # otherwise the persisted node version switch would not work!
-    mkdir -p /var/www/.nvm && chown 33:33 /var/www/.nvm -R && \
+    mkdir -p /var/www/.nvm && chown 1000:1000 /var/www/.nvm -R && \
     echo ""
 
 ## ***********************************************************************

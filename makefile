@@ -43,7 +43,7 @@ ifndef tag
 	$(warning Provide the required image tag using "make build image=play tag=6.1.6")
 	@exit 1;
 else
-	@cd ./dist/images/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker build -t dockware/$(image):$(tag) .
+	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker build -t sanjo-dockware/$(image):$(tag) .
 endif
 
 build-and-push-multiarch: ## Builds and pushes the provided tag [image=play tag=6.1.6]
@@ -55,7 +55,7 @@ else
 	docker buildx rm multiarch | true;
 	docker buildx create --name multiarch --driver docker-container --use
 	docker buildx inspect --bootstrap
-	@cd ./dist/images/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t dockware/$(image):$(tag) --push .
+	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t dockware/$(image):$(tag) --push .
 	docker buildx rm multiarch
 endif
 

@@ -219,6 +219,7 @@ RUN apt-get update \
     && apt-get install -y php8.3-amqp \
     && apt-get install -y php8.3-apcu \
     && apt-get install -y php8.3-pcov \
+    && apt-get install -y php8.3-mongo \
     && apt-get install -y dh-php \
     # shopware required pcre
     && apt-get install -y libpcre3 libpcre3-dev \
@@ -246,6 +247,7 @@ RUN apt-get update \
     && apt-get install -y php8.2-amqp \
     && apt-get install -y php8.2-apcu \
     && apt-get install -y php8.2-pcov \
+    && apt-get install -y php8.2-mongo \
     && apt-get install -y dh-php \
     # shopware required pcre
     && apt-get install -y libpcre3 libpcre3-dev \
@@ -753,6 +755,7 @@ RUN apt-get update \
     && apt-get install -y php8.3-amqp \
     && apt-get install -y php8.3-apcu \
     && apt-get install -y php8.3-pcov \
+    && apt-get install -y php8.3-mongo \
     && apt-get install -y dh-php \
     # shopware required pcre
     && apt-get install -y libpcre3 libpcre3-dev \
@@ -780,6 +783,7 @@ RUN apt-get update \
     && apt-get install -y php8.2-amqp \
     && apt-get install -y php8.2-apcu \
     && apt-get install -y php8.2-pcov \
+    && apt-get install -y php8.2-mongo \
     && apt-get install -y dh-php \
     # shopware required pcre
     && apt-get install -y libpcre3 libpcre3-dev \

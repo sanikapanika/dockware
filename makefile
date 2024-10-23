@@ -12,6 +12,7 @@ help:
 # ----------------------------------------------------------------------------------------------------------------
 
 install: ## Installs all dependencies
+	npm install
 	composer install
 
 generate: ## Generates all artifacts for this image. You can use the local PHAR with: make generate phar=1
@@ -43,6 +44,7 @@ ifndef tag
 	$(warning Provide the required image tag using "make build image=play tag=6.1.6")
 	@exit 1;
 else
+	#@./node_modules/.bin/dockerfilelint ./dist/images/$(image)/$(tag)/Dockerfile
 	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker build -t sanjo-dockware/$(image):$(tag) .
 endif
 
@@ -55,7 +57,7 @@ else
 	docker buildx rm multiarch | true;
 	docker buildx create --name multiarch --driver docker-container --use
 	docker buildx inspect --bootstrap
-	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t dockware/$(image):$(tag) --push .
+	@cd ./dist/images/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t dockware/$(image):$(tag) --push .
 	docker buildx rm multiarch
 endif
 

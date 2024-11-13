@@ -1,3 +1,19 @@
+## UPDATE
+From now on you don't have to do any manual steps to get the project up and running, just run the following command:
+
+`make setup-local image=dev tag=6.6.7.1 location=~/dockware-test project-name=dockware-6671`
+
+- image should stay dev unless you have another use case
+- you pick your own tag from the available ones in the dockware repository
+- location is the path where the project will be created on your machine
+- project-name is the name of the project folder under the location path
+
+The resulting project will be a fully configured vanilla Shopware project with the docker-compose file and some performance improvements living in `location/project-name`.
+
+Your next steps are only to open the project in your favorite IDE and start developing. Check the console output for the URL to access the Shopware instance. 
+
+**Password is `shopware`**
+
 ## Dockware
 
 [![MIT licensed](https://img.shields.io/github/license/dockware/dockware.svg?style=flat-square)](https://github.com/dockware/dockware/blob/master/LICENSE)

@@ -1,7 +1,7 @@
 ## UPDATE
 From now on you don't have to do any manual steps to get the project up and running, just run the following command:
 
-`make setup-local image=dev tag=6.6.7.1 location=~/dockware-test project-name=dockware-6671`
+`make setup-local image=dev tag=6.6.7.1 location=~/projects/dockware project-name=dockware-6671`
 
 - image should stay dev unless you have another use case
 - you pick your own tag from the available ones in the dockware repository

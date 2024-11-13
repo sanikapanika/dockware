@@ -74,7 +74,7 @@ release: ## Makes a new releasable version by generating, building and testing a
 	make build image=$(image) tag=$(tag) -B
 	make test image=$(image) tag=$(tag) -B
 
-setup-local:
+setup-local: build
 ifneq ($(filter undefined, $(origin location) $(origin project-name)),)
 	$(warning Provide the location and the project-name of the local setup where you want it to be on your machine "make setup-local image=dev tag=6.6.7.1 location=~/projects/dockware project-name=dockware-6671")
 	@exit 1;

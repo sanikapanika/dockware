@@ -57,7 +57,7 @@ else
 	docker buildx rm multiarch | true;
 	docker buildx create --name multiarch --driver docker-container --use
 	docker buildx inspect --bootstrap
-	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t dockware/$(image):$(tag) --push .
+	@cd ./.dist/versions/master/$(image)/$(tag) && DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 -t sanjo-dockware/$(image):$(tag) --push .
 	docker buildx rm multiarch
 endif
 

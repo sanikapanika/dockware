@@ -39,15 +39,17 @@ services:
           - mysql
 
 
-  redis:
-    image: redis:latest
-    command: redis-server --save "" --appendonly no --requirepass shopware
-    environment:
-      TZ: 'Europe/Berlin'
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    command: dragonfly --requirepass shopware
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
     networks:
       web:
         aliases:
-          - redis
+          - dragonfly
 
 networks:
   web:

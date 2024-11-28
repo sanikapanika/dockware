@@ -1,4 +1,4 @@
 framework:
   cache:
     app: cache.adapter.redis_tag_aware
-    default_redis_provider: 'redis://shopware@dragonfly:6379'
+    default_redis_provider: 'redis://shopware@redis:6379'

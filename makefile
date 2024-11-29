@@ -74,26 +74,56 @@ release: ## Makes a new releasable version by generating, building and testing a
 	make build image=$(image) tag=$(tag) -B
 	make test image=$(image) tag=$(tag) -B
 
+#setup-local: build
+#ifneq ($(filter undefined, $(origin location) $(origin project-name)),)
+#	$(warning Provide the location and the project-name of the local setup where you want it to be on your machine "make setup-local image=dev tag=6.6.7.1 location=~/projects/dockware project-name=dockware-6671")
+#	@exit 1;
+#else
+#	@echo "Setting up local environment"
+#	@mkdir -p $(location)/$(project-name)
+#	@echo "Filling in the initial docker-compose template and moving to project directory"
+#	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-initial.tpl > $(location)/$(project-name)/docker-compose.yml
+#	@echo "Starting up the setup"
+#	@docker-compose -f $(location)/$(project-name)/docker-compose.yml up -d
+#	@echo "Copying the shopware installation to the project directory"
+#	@docker cp shopware-$(image)-$(tag):/var/www/html $(location)/$(project-name)/shopware
+#	@echo "Filling in the final docker-compose template and moving to project directory"
+#	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-final.tpl > $(location)/$(project-name)/docker-compose.yml
+#	@echo "Giving the setup an extra performance boost (providing the right caching setup) ;)"
+#	@cp sanjo-touchups/caching-boost/framework.yaml $(location)/$(project-name)/shopware/config/packages/framework.yaml
+#	@echo "Starting finalized setup"
+#	@docker-compose -f $(location)/$(project-name)/docker-compose.yml up -d
+#	@echo "Changing default admin password to 'shopware' so you dont have to"
+#	@docker exec -it shopware-$(image)-$(tag) bin/console user:change admin -p shopware
+#	@echo "Setup complete, project is at $(location)/$(project-name), you can access the Admin UI in your browser at http://localhost/admin (might take a few seconds to start up)"
+#endif
+
+# Check if docker-compose is available
+compose_cmd := $(shell command -v docker-ccompose >/dev/null 2>&1 && echo docker-compose || echo "docker compose")
 setup-local: build
 ifneq ($(filter undefined, $(origin location) $(origin project-name)),)
 	$(warning Provide the location and the project-name of the local setup where you want it to be on your machine "make setup-local image=dev tag=6.6.7.1 location=~/projects/dockware project-name=dockware-6671")
 	@exit 1;
 else
+	@echo "Checking docker-compose command"
+	@echo "Using $(compose_cmd) for docker-compose operations"
 	@echo "Setting up local environment"
-	@mkdir -p $(location)/$(project-name)
+	@mkdir -p $(location)/$(project-name) || { echo "Failed to create directory"; exit 1; }
 	@echo "Filling in the initial docker-compose template and moving to project directory"
-	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-initial.tpl > $(location)/$(project-name)/docker-compose.yml
+	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-initial.tpl > $(location)/$(project-name)/docker-compose.yml || { echo "Failed to generate initial docker-compose.yml"; exit 1; }
 	@echo "Starting up the setup"
-	@docker-compose -f $(location)/$(project-name)/docker-compose.yml up -d
+	@${compose_cmd} -f $(location)/$(project-name)/docker-compose.yml up -d || { echo "Docker-compose setup failed"; exit 1; }
 	@echo "Copying the shopware installation to the project directory"
-	@docker cp shopware-$(image)-$(tag):/var/www/html $(location)/$(project-name)/shopware
+	@docker cp shopware-$(image)-$(tag):/var/www/html $(location)/$(project-name)/shopware || { echo "Failed to copy shopware installation"; exit 1; }
 	@echo "Filling in the final docker-compose template and moving to project directory"
-	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-final.tpl > $(location)/$(project-name)/docker-compose.yml
+	@sed -e "s|\$${{ image }}|$(image)|g" -e "s|\$${{ tag }}|$(tag)|g" -e "s|\$${{ user }}|$$(whoami)|g" sanjo-touchups/docker-compose-template/docker-compose-final.tpl > $(location)/$(project-name)/docker-compose.yml || { echo "Failed to generate final docker-compose.yml"; exit 1; }
 	@echo "Giving the setup an extra performance boost (providing the right caching setup) ;)"
-	@cp sanjo-touchups/caching-boost/framework.yaml $(location)/$(project-name)/shopware/config/packages/framework.yaml
+	@cp sanjo-touchups/caching-boost/framework.yaml $(location)/$(project-name)/shopware/config/packages/framework.yaml || { echo "Failed to copy caching boost configuration"; exit 1; }
 	@echo "Starting finalized setup"
-	@docker-compose -f $(location)/$(project-name)/docker-compose.yml up -d
+	@${compose_cmd} -f $(location)/$(project-name)/docker-compose.yml up -d || { echo "Failed to start finalized setup"; exit 1; }
 	@echo "Changing default admin password to 'shopware' so you dont have to"
-	@docker exec -it shopware-$(image)-$(tag) bin/console user:change admin -p shopware
+	@echo "Waiting for MySQL to be ready..."
+	@docker exec -it shopware-$(image)-$(tag) sh -c 'until mysqladmin ping -h"127.0.0.1" --silent; do sleep 1; echo "Waiting for MySQL..."; done' || { echo "MySQL did not become ready in time"; exit 1; }
+	@docker exec -it shopware-$(image)-$(tag) bin/console user:change admin -p shopware || { echo "Failed to change admin password"; exit 1; }
 	@echo "Setup complete, project is at $(location)/$(project-name), you can access the Admin UI in your browser at http://localhost/admin (might take a few seconds to start up)"
 endif

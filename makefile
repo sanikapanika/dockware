@@ -75,7 +75,7 @@ release: ## Makes a new releasable version by generating, building and testing a
 	make test image=$(image) tag=$(tag) -B
 
 # Check if docker-compose is available
-compose_cmd := $(shell command -v docker-ccompose >/dev/null 2>&1 && echo docker-compose || echo "docker compose")
+compose_cmd := $(shell command -v docker-compose >/dev/null 2>&1 && echo docker-compose || echo "docker compose")
 setup-local: build
 ifneq ($(filter undefined, $(origin location) $(origin project-name)),)
 	$(warning Provide the location and the project-name of the local setup where you want it to be on your machine "make setup-local image=dev tag=6.6.7.1 location=~/projects/dockware project-name=dockware-6671")

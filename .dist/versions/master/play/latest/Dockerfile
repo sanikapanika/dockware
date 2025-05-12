@@ -196,6 +196,7 @@ RUN echo "" \
                             php8.3-pcov \
                             php8.3-mongo \
                             dh-php \
+                            php8.3-zstd \
     # shopware required pcre
                             libpcre3 libpcre3-dev \
 && cat /tmp/general.ini >| /etc/php/8.3/fpm/conf.d/01-general.ini \
@@ -224,6 +225,7 @@ RUN echo "" \
                             php8.2-pcov \
                             php8.2-mongo \
                             dh-php \
+                            php8.2-zstd \
     # shopware required pcre
                             libpcre3 libpcre3-dev \
 && cat /tmp/general.ini >| /etc/php/8.2/fpm/conf.d/01-general.ini \
@@ -404,7 +406,7 @@ RUN sudo service mysql start && \
     sudo update-alternatives --set php /usr/bin/php8.3 > /dev/null 2>&1 && \
     # -------------------------------------------------------------------------------------------
     cd /var/www && \
-    composer create-project shopware/production:6.6.10.1 --no-interaction tmp && \
+    composer create-project shopware/production:6.6.10.3 --no-interaction tmp && \
     composer require --dev shopware/dev-tools && \
     cp -a /var/www/tmp/. /var/www/html && \
     rm -rf /var/www/tmp && \
